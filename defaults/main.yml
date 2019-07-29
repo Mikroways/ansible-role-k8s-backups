@@ -1,0 +1,15 @@
+---
+# defaults file for k8s-backups
+ansible_python_interpreter: /usr/bin/python3
+k8s_backups_enabled: true
+k8s_backups_destination: /backup
+k8s_backups_schedule: 0/1 * * * *
+k8s_backups_date_format: "%Y-%m-%d_%H-%M-%S_%Z"
+k8s_backups_retain: 5 # in days:
+k8s_backups_etcd_env_path: /etc/etcd.env   
+k8s_backups_directories_on_masters:
+  - name: kubernetes-etc
+    path: /etc/kubernetes
+k8s_backups_directories_on_etcd:      
+  - name: etcd-certs
+    path: /etc/ssl/etcd/ssl

@@ -1,0 +1,22 @@
+---
+# tasks file for k8s-backup
+
+- name: include etcd task backup
+  include_tasks: backup-master.yml
+  when: k8s_backups_enabled
+
+- name: include etcd task backup
+  include_tasks: backup-etcd.yml
+  when: k8s_backups_enabled
+
+- name: install configmap for etcd backups
+  k8s:
+    state: "{{ k8s.backup.state }}"
+    definition: "{{ lookup('template', role_path  + '/templates/configmap.yaml.j2') }}"
+  become: yes
+  run_once: true
+  when: k8s_backups_enabled
+  delegate_to: "{{ master }}"
+  loop: "{{ groups['kube-master'] }}"
+  loop_control: 
+    loop_var: master
