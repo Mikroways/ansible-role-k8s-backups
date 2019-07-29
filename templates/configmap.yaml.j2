@@ -34,7 +34,7 @@ data:
    tar -cvzf etcd-keys-$NODE-$DATE.tar.gz *
    mv etcd-keys-$NODE-$DATE.tar.gz {{ k8s_backups_destination }}/
    rm -rf $TEMP_DIR/
-  sh-master-backup: |
+  sh-do-master-backup: |
    #!/bin/sh
    set -x
    echo "running master backup"

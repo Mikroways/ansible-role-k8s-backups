@@ -33,7 +33,7 @@ spec:
               mountPath: {{ k8s_backups_destination }}         
           restartPolicy: OnFailure
           nodeSelector:
-            kubernetes.io/hostname: '{{ hostvars[groups["etcd"][0]].ansible_facts.hostname }}'
+            kubernetes.io/hostname: '{{ hostvars[etcd].ansible_facts.hostname }}'
           tolerations:
           - effect: NoSchedule
             operator: Exists
