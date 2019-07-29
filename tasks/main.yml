@@ -11,7 +11,7 @@
 
 - name: install configmap for etcd backups
   k8s:
-    state: "{{ k8s.backup.state }}"
+    state: present
     definition: "{{ lookup('template', role_path  + '/templates/configmap.yaml.j2') }}"
   become: yes
   run_once: true
