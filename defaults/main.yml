@@ -1,7 +1,6 @@
 ---
 # defaults file for k8s-backups
-ansible_python_interpreter: /usr/bin/python3
-k8s_backups_enabled: true
+k8s_backups_enabled: false
 k8s_backups_destination: /backup
 k8s_backups_schedule: 0/1 * * * *
 k8s_backups_date_format: "%Y-%m-%d_%H-%M-%S_%Z"
