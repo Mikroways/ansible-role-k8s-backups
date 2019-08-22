@@ -5,7 +5,6 @@
     set -o pipefail
     /usr/local/bin/etcdctl --version | grep etcdctl | cut -d " " -f3
   register: etcdctl_version
-  become: yes
   changed_when: etcdctl_version.rc != 0
   when: ansible_hostname in groups['etcd']
 
@@ -14,7 +13,6 @@
     set -o pipefail
     grep {{ item }} "{{ k8s_backups_etcd_env_path }}" | cut -d "=" -f2
   register: etcd_env
-  become: yes
   changed_when: (etcd_env.stdout | length) > 0
   with_items:
     - ETCD_TRUSTED_CA_FILE
@@ -49,14 +47,12 @@
 
 - name: install cronjob for etcd backups
   k8s:
-    state: present
+    state: "{{ 'present' if k8s_backups_enabled else 'absent' }}"
     definition: "{{ lookup('template', role_path  + '/templates/cronjob-etcd.yaml.j2', template_vars=dict(etcd=ansible_hostname,etcd_version=etcd_version)) }}"
-  become: yes
   when: ansible_hostname in groups['etcd']
 
 - name: install cronjob for etcd keys backups
   k8s:
-    state: present
+    state: "{{ 'present' if k8s_backups_enabled else 'absent' }}"
     definition: "{{ lookup('template', role_path  + '/templates/cronjob-etcd-key.yaml.j2', template_vars=dict(etcd=ansible_hostname,etcd_version=etcd_version)) }}"
-  become: yes
   when: ansible_hostname in groups['etcd']

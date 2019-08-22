@@ -2,9 +2,8 @@
 
 - name: install cronjob for master backups
   k8s:
-    state: present
+    state: "{{ 'present' if k8s_backups_enabled else 'absent' }}"
     definition: "{{ lookup('template', role_path  + '/templates/cronjob-master.yaml.j2', template_vars=dict(master=master)) }}"
-  become: yes
   delegate_to: "{{ master }}"
   loop: "{{ groups['kube-master'] }}"
   loop_control:
