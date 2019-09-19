@@ -1,18 +1,33 @@
 ---
 # tasks file for k8s-backup
 
+- name: fail if state is not recognized
+  fail:
+    msg: "No se reconoce el estado: {{ m7s_backups_state }}"
+  when: 
+  - m7s_backups_enabled
+  - m7s_backups_state not in ["installed", "upgraded", "purged"]
+
 - name: include etcd task backup
   include_tasks: backup-master.yml
+  when:
+  - m7s_backups_enabled
+  - m7s_backups_state != "purged"
 
 - name: include etcd task backup
   include_tasks: backup-etcd.yml
+  when:
+  - m7s_backups_enabled
+  - m7s_backups_state != "purged"
 
 - name: install configmap for etcd backups
   k8s:
-    state: "{{ 'present' if k8s_backups_enabled else 'absent' }}"
+    state: "{{ 'absent' if m7s_backups_state == 'purged' else 'present' }}"
     definition: "{{ lookup('template', role_path  + '/templates/configmap.yaml.j2') }}"
   run_once: true
   delegate_to: "{{ master }}"
   loop: "{{ groups['kube-master'] }}"
   loop_control: 
     loop_var: master
+  when:
+  - m7s_backups_enabled
