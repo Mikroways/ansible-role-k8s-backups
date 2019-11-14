@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  role_name: k8s-backups
+  role_name: m7s_backups
   author: Matias Emanuel Ferrigno
   description: your description
   company: Mikroways
