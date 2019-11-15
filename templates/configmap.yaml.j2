@@ -52,4 +52,4 @@ data:
    #!/bin/sh
    set -x
    echo "running clean"
-   find {{ m7s_k8s_backups_destination }}/* -mtime +{{ m7s_backups_retain }} -exec rm {} \;
+   find {{ m7s_k8s_backups_destination }}/* -mtime +{{ m7s_k8s_backups_retain }} -exec rm {} \;
