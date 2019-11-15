@@ -4,7 +4,7 @@ metadata:
   name: backup-etcd-key-{{ hostvars[etcd].ansible_facts.hostname  }}
   namespace: kube-system
 spec:
-  schedule: "{{ m7s_backups_schedule }}"
+  schedule: "{{ m7s_k8s_backups_schedule }}"
   jobTemplate:
     spec:
       template:
@@ -21,13 +21,13 @@ spec:
               mountPath: /root/backup
             - name: do-clean-volume
               mountPath: /root/clean
-{% for directory in m7s_backups_directories_on_etcd %}
+{% for directory in m7s_k8s_backups_directories_on_etcd %}
             - name: {{ directory.name }}
               mountPath: {{ directory.path }}              
               readOnly: true
 {% endfor %}
             - name: backup-volume
-              mountPath: {{ m7s_backups_destination }}  
+              mountPath: {{ m7s_k8s_backups_destination }}  
           restartPolicy: OnFailure
           nodeSelector:
             kubernetes.io/hostname: "{{ hostvars[etcd].ansible_facts.hostname }}"
@@ -52,7 +52,7 @@ spec:
               items:
               - key: sh-do-clean
                 path: do-clean.sh
-{% for directory in m7s_backups_directories_on_etcd %}
+{% for directory in m7s_k8s_backups_directories_on_etcd %}
           - name: {{ directory.name }}
             hostPath:
               path: {{ directory.path }}

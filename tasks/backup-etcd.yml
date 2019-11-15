@@ -7,13 +7,13 @@
   register: etcdctl_version
   changed_when: etcdctl_version.rc != 0
   when: 
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd']
 
-- name: get envs from {{ m7s_backups_etcd_env_path }}
+- name: get envs from {{ m7s_k8s_backups_etcd_env_path }}
   shell: |
     set -o pipefail
-    grep {{ item }} "{{ m7s_backups_etcd_env_path }}" | cut -d "=" -f2
+    grep {{ item }} "{{ m7s_k8s_backups_etcd_env_path }}" | cut -d "=" -f2
   register: etcd_env
   changed_when: (etcd_env.stdout | length) > 0
   with_items:
@@ -21,20 +21,20 @@
     - ETCD_CERT_FILE
     - ETCD_KEY_FILE
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd']
 
 - set_fact:
     etcd_version: "{{ etcdctl_version.stdout }}"
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd']
 
 - set_fact:
     etcd_trusted_ca_file: "{{ item.stdout }}"
   loop: "{{ etcd_env.results }}"
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd'] 
   - item.item == "ETCD_TRUSTED_CA_FILE"
 
@@ -42,7 +42,7 @@
     etcd_cert_file: "{{ item.stdout }}"
   loop: "{{ etcd_env.results }}"
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd'] 
   - item.item == "ETCD_CERT_FILE"
 
@@ -50,22 +50,22 @@
     etcd_key_file: "{{ item.stdout }}"
   loop: "{{ etcd_env.results }}"
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd'] 
   - item.item == "ETCD_KEY_FILE"
 
 - name: install cronjob for etcd backups
   k8s:
-    state: "{{ 'absent' if m7s_backups_state == 'purged' else 'present' }}"
+    state: "{{ 'absent' if m7s_k8s_backups_state == 'purged' else 'present' }}"
     definition: "{{ lookup('template', role_path  + '/templates/cronjob-etcd.yaml.j2', template_vars=dict(etcd=ansible_hostname,etcd_version=etcd_version)) }}"
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd']
 
 - name: install cronjob for etcd keys backups
   k8s:
-    state: "{{ 'absent' if m7s_backups_state == 'purged' else 'present' }}"
+    state: "{{ 'absent' if m7s_k8s_backups_state == 'purged' else 'present' }}"
     definition: "{{ lookup('template', role_path  + '/templates/cronjob-etcd-key.yaml.j2', template_vars=dict(etcd=ansible_hostname,etcd_version=etcd_version)) }}"
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
   - ansible_hostname in groups['etcd']

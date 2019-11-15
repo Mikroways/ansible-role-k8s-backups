@@ -1,15 +1,15 @@
 ---
 # defaults file for k8s-backups
-m7s_backups_enabled: false
-m7s_backups_state: installed
-m7s_backups_destination: /backup
-m7s_backups_schedule: 0/1 * * * *
-m7s_backups_date_format: "%Y-%m-%d_%H-%M-%S_%Z"
-m7s_backups_retain: 5 # in days:
-m7s_backups_etcd_env_path: /etc/etcd.env   
-m7s_backups_directories_on_masters:
+m7s_k8s_backups_enabled: false
+m7s_k8s_backups_state: installed
+m7s_k8s_backups_destination: /backup
+m7s_k8s_backups_schedule: 0/1 * * * *
+m7s_k8s_backups_date_format: "%Y-%m-%d_%H-%M-%S_%Z"
+m7s_k8s_backups_retain: 5 # in days:
+m7s_k8s_backups_etcd_env_path: /etc/etcd.env   
+m7s_k8s_backups_directories_on_masters:
   - name: kubernetes-etc
     path: /etc/kubernetes
-m7s_backups_directories_on_etcd:      
+m7s_k8s_backups_directories_on_etcd:      
   - name: etcd-certs
     path: /etc/ssl/etcd/ssl

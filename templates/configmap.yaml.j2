@@ -8,7 +8,7 @@ data:
    #!/bin/sh
    set -x
    echo "running etcd backup"
-   DATE=$(date +{{ m7s_backups_date_format }})
+   DATE=$(date +{{ m7s_k8s_backups_date_format }})
    TEMP_DIR=$(mktemp -d)
    cd $TEMP_DIR
    /usr/local/bin/etcdctl \
@@ -18,38 +18,38 @@ data:
     --key={{ etcd_key_file }} \
     snapshot save etcd-snapshot-$DATE.db
    tar -cvzf etcd-$DATE.tar.gz *
-   mv etcd-$DATE.tar.gz {{ m7s_backups_destination }}/
+   mv etcd-$DATE.tar.gz {{ m7s_k8s_backups_destination }}/
    rm -rf $TEMP_DIR/
   sh-do-etcd-keys-backup: |
    #!/bin/sh
    set -x
    echo "running etcd keys backup"
    NODE=$1
-   DATE=$(date +{{ m7s_backups_date_format }})
+   DATE=$(date +{{ m7s_k8s_backups_date_format }})
    TEMP_DIR=$(mktemp -d)
    cd $TEMP_DIR
-{% for directory in m7s_backups_directories_on_etcd %}
+{% for directory in m7s_k8s_backups_directories_on_etcd %}
    tar -cvzf $NODE-{{ directory.name }}-$DATE.tar.gz {{ directory.path }}
 {% endfor %}
    tar -cvzf etcd-keys-$NODE-$DATE.tar.gz *
-   mv etcd-keys-$NODE-$DATE.tar.gz {{ m7s_backups_destination }}/
+   mv etcd-keys-$NODE-$DATE.tar.gz {{ m7s_k8s_backups_destination }}/
    rm -rf $TEMP_DIR/
   sh-do-master-backup: |
    #!/bin/sh
    set -x
    echo "running master backup"
    NODE=$1
-   DATE=$(date +{{ m7s_backups_date_format }})
+   DATE=$(date +{{ m7s_k8s_backups_date_format }})
    TEMP_DIR=$(mktemp -d)
    cd $TEMP_DIR
-{% for directory in m7s_backups_directories_on_masters %}
+{% for directory in m7s_k8s_backups_directories_on_masters %}
    tar -cvzf master-{{ directory.name }}-$DATE.tar.gz {{ directory.path }}
 {% endfor %}
    tar -cvzf masters-$NODE-$DATE.tar.gz *
-   mv masters-$NODE-$DATE.tar.gz {{ m7s_backups_destination }}/
+   mv masters-$NODE-$DATE.tar.gz {{ m7s_k8s_backups_destination }}/
    rm -rf $TEMP_DIR/
   sh-do-clean: |
    #!/bin/sh
    set -x
    echo "running clean"
-   find {{ m7s_backups_destination }}/* -mtime +{{ m7s_backups_retain }} -exec rm {} \;
+   find {{ m7s_k8s_backups_destination }}/* -mtime +{{ m7s_backups_retain }} -exec rm {} \;

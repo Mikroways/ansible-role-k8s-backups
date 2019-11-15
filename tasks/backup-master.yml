@@ -2,11 +2,11 @@
 
 - name: install cronjob for master backups
   k8s:
-    state: "{{ 'absent' if m7s_backups_state == 'purged' else 'present' }}"
+    state: "{{ 'absent' if m7s_k8s_backups_state == 'purged' else 'present' }}"
     definition: "{{ lookup('template', role_path  + '/templates/cronjob-master.yaml.j2', template_vars=dict(master=master)) }}"
   delegate_to: "{{ master }}"
   loop: "{{ groups['kube-master'] }}"
   loop_control:
     loop_var: master
   when:
-  - m7s_backups_enabled
+  - m7s_k8s_backups_enabled
