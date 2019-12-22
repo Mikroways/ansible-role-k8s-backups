@@ -14,5 +14,5 @@
   run_once: true
   delegate_to: "{{ master }}"
   loop: "{{ groups[m7s_k8s_backups_ansible_k8s_master_group] }}"
-  loop_control: 
+  loop_control:
     loop_var: master

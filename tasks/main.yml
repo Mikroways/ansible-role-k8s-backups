@@ -8,8 +8,8 @@
 - name: set backup_state to absent
   set_fact:
     backup_state: 'absent'
-  when: 
-  - m7s_k8s_backups_state is defined 
+  when:
+  - m7s_k8s_backups_state is defined
   - m7s_k8s_backups_state == 'absent'
 
 - name: Create destination directory

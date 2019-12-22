@@ -15,14 +15,14 @@
 - name: install etcd backup cronjob
   cron:
     name: backup etcd
-    state: "{{ backup_state}}"
+    state: "{{ backup_state }}"
     minute: "{{ m7s_k8s_backups_etcd_minute_schedule }}"
     job: /usr/local/bin/etcd-backup.sh
 
 - name: install ectd keys backup cronjob
   cron:
     name: backup etcd keys
-    state: "{{ backup_state}}"
+    state: "{{ backup_state }}"
     special_time: "{{ m7s_k8s_backups_etcd_keys_special_time_schedule }}"
     job: /usr/local/bin/etcd-keys-backup.sh
 
