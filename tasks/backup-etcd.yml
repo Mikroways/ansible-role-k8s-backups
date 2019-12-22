@@ -1,71 +1,34 @@
-# tasks file for k8s-backup
+- name: setup etcd backup script
+  template:
+    src: "{{ role_path  + '/templates/etcd-backup.sh.j2' }}"
+    dest: '/usr/local/bin/etcd-backup.sh'
+    mode: '0700'
+    owner: root
 
-- name: get etcd version
-  shell: |
-    set -o pipefail
-    /usr/local/bin/etcdctl --version | grep etcdctl | cut -d " " -f3
-  register: etcdctl_version
-  changed_when: etcdctl_version.rc != 0
-  when: 
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd']
+- name: setup etcd keys backup script
+  template:
+    src: "{{ role_path  + '/templates/etcd-keys-backup.sh.j2' }}"
+    dest: '/usr/local/bin/etcd-keys-backup.sh'
+    mode: '0700'
+    owner: root
 
-- name: get envs from {{ m7s_k8s_backups_etcd_env_path }}
-  shell: |
-    set -o pipefail
-    grep {{ item }} "{{ m7s_k8s_backups_etcd_env_path }}" | cut -d "=" -f2
-  register: etcd_env
-  changed_when: (etcd_env.stdout | length) > 0
-  with_items:
-    - ETCD_TRUSTED_CA_FILE
-    - ETCD_CERT_FILE
-    - ETCD_KEY_FILE
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd']
+- name: install etcd backup cronjob
+  cron:
+    name: backup etcd
+    state: "{{ backup_state}}"
+    minute: "{{ m7s_k8s_backups_etcd_minute_schedule }}"
+    job: /usr/local/bin/etcd-backup.sh
 
-- set_fact:
-    etcd_version: "{{ etcdctl_version.stdout }}"
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd']
+- name: install ectd keys backup cronjob
+  cron:
+    name: backup etcd keys
+    state: "{{ backup_state}}"
+    special_time: "{{ m7s_k8s_backups_etcd_keys_special_time_schedule }}"
+    job: /usr/local/bin/etcd-keys-backup.sh
 
-- set_fact:
-    etcd_trusted_ca_file: "{{ item.stdout }}"
-  loop: "{{ etcd_env.results }}"
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd'] 
-  - item.item == "ETCD_TRUSTED_CA_FILE"
-
-- set_fact:
-    etcd_cert_file: "{{ item.stdout }}"
-  loop: "{{ etcd_env.results }}"
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd'] 
-  - item.item == "ETCD_CERT_FILE"
-
-- set_fact:
-    etcd_key_file: "{{ item.stdout }}"
-  loop: "{{ etcd_env.results }}"
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd'] 
-  - item.item == "ETCD_KEY_FILE"
-
-- name: install cronjob for etcd backups
-  k8s:
-    state: "{{ 'absent' if m7s_k8s_backups_state == 'purged' else 'present' }}"
-    definition: "{{ lookup('template', role_path  + '/templates/cronjob-etcd.yaml.j2', template_vars=dict(etcd=ansible_hostname,etcd_version=etcd_version)) }}"
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd']
-
-- name: install cronjob for etcd keys backups
-  k8s:
-    state: "{{ 'absent' if m7s_k8s_backups_state == 'purged' else 'present' }}"
-    definition: "{{ lookup('template', role_path  + '/templates/cronjob-etcd-key.yaml.j2', template_vars=dict(etcd=ansible_hostname,etcd_version=etcd_version)) }}"
-  when:
-  - m7s_k8s_backups_enabled
-  - ansible_hostname in groups['etcd']
+- name: install clean backups cronjob
+  cron:
+    name: clean old backups
+    state: "{{ backup_state }}"
+    special_time: "{{ m7s_k8s_backups_etcd_keys_special_time_schedule }}"
+    job: "find {{ m7s_k8s_backups_destination }}/* -mtime +{{ m7s_k8s_backups_retain }} -exec rm {} \\;"

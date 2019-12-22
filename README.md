@@ -1,48 +1,50 @@
-k8s-backups
-=========
+# mikroways.m7s-k8s-backups
 
-A brief description of the role goes here.
+Backup etcd nodes and kubernetes master nodes. It uses kubespray groups, but
+this can be customized with role variables.
 
-Requirements
-------------
+## Role Variables
 
-Any pre-requisites that may not be covered by Ansible itself or the role should
-be mentioned here. For instance, if the role uses the EC2 module, it may be a
-good idea to mention in this section that the boto package is required.
+* `m7s_k8s_backups_state:` whether backups are enabled or not. By default are
+  enabled.
+* `m7s_k8s_backups_destination:` where backups will be stored. By default `/var/lib/m7s-k8s-backups`.
+* `m7s_k8s_backups_master_schedule:` frequency of master backups. Once a day at
+  3 am is default value. This variable must use crontab format like `0 3 * * *`.
+* `m7s_k8s_backups_etcd_minute_schedule:` frequency of etcd backups. By default
+  is every 30 minutes: `*/30`.
+* `m7s_k8s_backups_etcd_keys_special_time_schedule:` frequency of etcd
+  certificates backups. By default is `daily`.
+* `m7s_k8s_backups_date_format:` filename trailing date format. By default `%Y-%m-%d_%H-%M-%S_%Z`
+* `m7s_k8s_backups_retain:` retention in days. By default 5 days of retention.
+* `m7s_k8s_backups_etcd_env_path:` source script with custom environment set by
+  kubespray. Defaults to `/etc/etcd.env`.
+* `m7s_k8s_backups_directory_on_master:` directory to backup from master nodes.
+  Defaults to `/etc/kubernetes`.
+* `m7s_k8s_backups_directory_on_etcd:` directory to backup from etcd noes.
+  Defaults to `/etc/ssl/etcd/ssl`
+* `m7s_k8s_backups_ansible_k8s_master_group:` ansible group of master nodes.
+  Defaults to `kube-maste`
+* `m7s_k8s_backups_ansible_k8s_etcd_group:` ansible group of etcd nodes.
+  Defaults to `etcd`.
 
-Role Variables
---------------
 
-A description of the settable variables for this role should go here, including
-any variables that are in defaults/main.yml, vars/main.yml, and any variables
-that can/should be set via parameters to the role. Any variables that are read
-from other roles and/or the global scope (ie. hostvars, group vars, etc.) should
-be mentioned here as well.
+## Example Playbook
 
-Dependencies
-------------
+```yaml
+- hosts: kube-master:etcd
+  roles:
+    - { role: mikroways.m7s-k8s-backups, tags: [ backups ] }
 
-A list of other roles hosted on Galaxy should go here, plus any details in
-regards to parameters that may need to be set for other roles, or variables that
-are used from other roles.
+```
 
-Example Playbook
-----------------
+This example allows to test backup role runing:
 
-Including an example of how to use your role (for instance, with variables
-passed in as parameters) is always nice for users too:
+```
+ansible-playbook -t backups all your-playbook.yml
+```
 
-    - hosts: servers
-      roles:
-         - mikroways.m7s_k8s_backups
 
-License
--------
+## License
 
-BSD
+GPLv2
 
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a
-website (HTML is not allowed).

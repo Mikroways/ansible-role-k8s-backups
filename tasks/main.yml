@@ -1,33 +1,28 @@
 ---
-# tasks file for k8s-backup
 
-- name: fail if state is not recognized
-  fail:
-    msg: "No se reconoce el estado: {{ m7s_k8s_backups_state }}"
+- name: Set backup_state to present
+  set_fact:
+    backup_state: 'present'
+  when: m7s_k8s_backups_state is not defined or m7s_k8s_backups_state in [ 'present', 'installed' ]
+
+- name: set backup_state to absent
+  set_fact:
+    backup_state: 'absent'
   when: 
-  - m7s_k8s_backups_enabled
-  - m7s_k8s_backups_state not in ["installed", "upgraded", "purged"]
+  - m7s_k8s_backups_state is defined 
+  - m7s_k8s_backups_state == 'absent'
 
-- name: include etcd task backup
+- name: Create destination directory
+  file:
+    path: "{{ m7s_k8s_backups_destination }}"
+    state: directory
+    mode: '0700'
+
+- name: Setup master task backup
   include_tasks: backup-master.yml
-  when:
-  - m7s_k8s_backups_enabled
-  - m7s_k8s_backups_state != "purged"
+  when: inventory_hostname in groups[m7s_k8s_backups_ansible_k8s_master_group]
 
-- name: include etcd task backup
+- name: Setup etcd task backup
   include_tasks: backup-etcd.yml
-  when:
-  - m7s_k8s_backups_enabled
-  - m7s_k8s_backups_state != "purged"
+  when: inventory_hostname in groups[m7s_k8s_backups_ansible_k8s_etcd_group]
 
-- name: install configmap for etcd backups
-  k8s:
-    state: "{{ 'absent' if m7s_k8s_backups_state == 'purged' else 'present' }}"
-    definition: "{{ lookup('template', role_path  + '/templates/configmap.yaml.j2') }}"
-  run_once: true
-  delegate_to: "{{ master }}"
-  loop: "{{ groups['kube-master'] }}"
-  loop_control: 
-    loop_var: master
-  when:
-  - m7s_k8s_backups_enabled

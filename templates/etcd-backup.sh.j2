@@ -1,0 +1,18 @@
+#!/bin/sh
+set -eo pipefail
+echo "running etcd backup"
+source {{ m7s_k8s_backups_etcd_env_path }}
+NODE={{ inventory_hostname }}
+DATE=$(date +{{ m7s_k8s_backups_date_format }})
+TEMP_DIR=$(mktemp -d)
+cd $TEMP_DIR
+export ETCDCTL_API=3
+/usr/local/bin/etcdctl \
+  --endpoints=https://127.0.0.1:2379 \
+  --cacert=$ETCD_TRUSTED_CA_FILE \
+  --cert=$ETCD_CERT_FILE \
+  --key=$ETCD_KEY_FILE \
+snapshot save etcd-snapshot-$DATE.db
+tar -cvzf etcd-$NODE-$DATE.tar.gz *
+mv etcd-$NODE-$DATE.tar.gz {{ m7s_k8s_backups_destination }}/
+rm -rf $TEMP_DIR/

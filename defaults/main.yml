@@ -1,15 +1,13 @@
 ---
-# defaults file for k8s-backups
-m7s_k8s_backups_enabled: false
-m7s_k8s_backups_state: installed
-m7s_k8s_backups_destination: /backup
-m7s_k8s_backups_schedule: 0/1 * * * *
+m7s_k8s_backups_state: present
+m7s_k8s_backups_destination: /var/lib/m7s-k8s-backups
+m7s_k8s_backups_master_schedule: "0 3 * * *"
+m7s_k8s_backups_etcd_minute_schedule: "*/30"
+m7s_k8s_backups_etcd_keys_special_time_schedule: "daily"
 m7s_k8s_backups_date_format: "%Y-%m-%d_%H-%M-%S_%Z"
 m7s_k8s_backups_retain: 5 # in days:
-m7s_k8s_backups_etcd_env_path: /etc/etcd.env   
-m7s_k8s_backups_directories_on_masters:
-  - name: kubernetes-etc
-    path: /etc/kubernetes
-m7s_k8s_backups_directories_on_etcd:      
-  - name: etcd-certs
-    path: /etc/ssl/etcd/ssl
+m7s_k8s_backups_etcd_env_path: /etc/etcd.env
+m7s_k8s_backups_directory_on_master: /etc/kubernetes
+m7s_k8s_backups_directory_on_etcd: /etc/ssl/etcd/ssl
+m7s_k8s_backups_ansible_k8s_master_group: kube-master
+m7s_k8s_backups_ansible_k8s_etcd_group: etcd

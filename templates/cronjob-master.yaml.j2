@@ -1,10 +1,10 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: backup-masters-{{ hostvars[master].ansible_facts.hostname }}
+  name: m7s-backup-masters-{{ inventory_hostname }}
   namespace: kube-system
 spec:
-  schedule: "{{ m7s_k8s_backups_schedule }}"
+  schedule: "{{ m7s_k8s_backups_master_schedule }}"
   jobTemplate:
     spec:
       template:
@@ -15,31 +15,25 @@ spec:
             command: ["/bin/sh"]
             args: 
               - -c
-              - sh /root/backup/do-backup.sh {{ hostvars[master].ansible_facts.hostname }} && sh /root/clean/do-clean.sh
+              - sh /root/backup/do-backup.sh {{ inventory_hostname }} && sh /root/clean/do-clean.sh
             volumeMounts:
             - name: do-backup-volume
               mountPath: /root/backup
             - name: do-clean-volume
               mountPath: /root/clean
-{% for directory in m7s_k8s_backups_directories_on_masters %}
-            - name: {{ directory.name }}
-              mountPath: {{ directory.path }}              
+            - name: kubernetes-dir
+              mountPath: {{ m7s_k8s_backups_directory_on_master }}
               readOnly: true
-{% endfor %}
             - name: backup-volume
               mountPath: {{ m7s_k8s_backups_destination }}         
           restartPolicy: OnFailure
           nodeSelector:
-            kubernetes.io/hostname: "{{ hostvars[master].ansible_facts.hostname }}"
+            kubernetes.io/hostname: "{{ inventory_hostname }}"
           tolerations:
           - effect: NoSchedule
             operator: Exists
           hostNetwork: true
           volumes:
-          - name: backup-volume
-            hostPath:
-              path: /backup
-              type: DirectoryOrCreate
           - name: do-backup-volume
             configMap:
               name: backup-config
@@ -52,9 +46,11 @@ spec:
               items:
               - key: sh-do-clean
                 path: do-clean.sh
-{% for directory in m7s_k8s_backups_directories_on_masters %}
-          - name: {{ directory.name }}
+          - name: backup-volume
             hostPath:
-              path: {{ directory.path }}
-              type: DirectoryOrCreate
-{% endfor %}
+              path: {{ m7s_k8s_backups_destination }}
+              type: Directory
+          - name: kubernetes-dir
+            hostPath:
+              path: {{ m7s_k8s_backups_directory_on_master }}
+              type: Directory

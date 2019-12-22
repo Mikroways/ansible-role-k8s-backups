@@ -1,0 +1,10 @@
+#!/bin/sh
+set -eo pipefail
+echo "running etcd keys backup"
+NODE={{ inventory_hostname }}
+DATE=$(date +{{ m7s_k8s_backups_date_format }})
+TEMP_DIR=$(mktemp -d)
+cd $TEMP_DIR
+tar -cvzf etcd-keys-$NODE-$DATE.tar.gz {{ m7s_k8s_backups_directory_on_etcd }}
+mv etcd-keys-$NODE-$DATE.tar.gz {{ m7s_k8s_backups_destination }}/
+rm -rf $TEMP_DIR/
