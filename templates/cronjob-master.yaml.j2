@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: m7s-backup-masters-{{ inventory_hostname }}
+  name: m7s-backup-masters-{{ inventory_hostname_short }}
   namespace: kube-system
 spec:
   schedule: "{{ m7s_k8s_backups_master_schedule }}"
